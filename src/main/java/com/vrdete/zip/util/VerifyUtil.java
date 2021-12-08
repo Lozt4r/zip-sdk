@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class VerifyUtil {
 
-    public static boolean verifyFiles(List<File> fileList, String allowSuffix) throws IOException {
+    public static boolean verifyFiles(List<File> fileList, String allowSuffix,boolean isPrint) throws IOException {
 
         boolean flag = true;
 
@@ -20,11 +20,22 @@ public class VerifyUtil {
                 FileInputStream is = new FileInputStream(file);
                 String head = bytesToHexString(is.readAllBytes()).substring(0, 7).toLowerCase();
                 String type = getType(head);
-                System.out.println("文件名为: " + file.getName() + " 的数据头为: " + head + "该文件真实类型为: " + type);
-                if (flag){
-                    flag = allowSuffix.contains(type.trim().toLowerCase());
-                }else{
-                    break;
+                if(isPrint) {
+                    System.out.println("文件名为: " + file.getName() + " 的数据头为: " + head + "该文件真实类型为: " + type);
+                }
+                if (flag) {
+                    try {
+                        flag = allowSuffix.contains(type.trim().toLowerCase());
+                    }catch (NullPointerException e){
+                        flag = false;
+                        System.out.println("文件名为: " + file.getName() + " 数据头为 " + head
+                                + "在map中找不到数据，请自行添加");
+                    }
+
+                    if(!flag) {
+                        System.out.println("文件名为: " + file.getName() + "不符合文件类型要求");
+                        break;
+                    }
                 }
             }
         }
@@ -54,11 +65,12 @@ public class VerifyUtil {
     }
 
     private static String getType(String head) {
+
         String type = FILE_TYPE_MAP.get(head);
         return type;
     }
 
-    private static final HashMap<String, String> FILE_TYPE_MAP= new HashMap<>();
+    public static final HashMap<String, String> FILE_TYPE_MAP= new HashMap<>();
     static {
         FILE_TYPE_MAP.put("ffd8ffe", "jpg");
         FILE_TYPE_MAP.put("ffd8ffe", "jpg");
